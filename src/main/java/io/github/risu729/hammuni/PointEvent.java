@@ -13,7 +13,11 @@ import lombok.AllArgsConstructor;
 import lombok.Getter;
 import lombok.experimental.Accessors;
 import lombok.experimental.FieldDefaults;
+import org.jetbrains.annotations.NotNull;
 
+import java.util.Locale;
+
+@SuppressWarnings("FieldNotUsedInToString")
 @FieldDefaults(level = AccessLevel.PRIVATE, makeFinal = true)
 @Accessors(fluent = true)
 @Getter
@@ -87,5 +91,9 @@ enum PointEvent {
 
   PointEvent(int gainPoint, int consumePoint) {
     this(gainPoint, consumePoint, false);
+  }
+
+  public @NotNull String toString() {
+    return name().toLowerCase(Locale.ENGLISH);
   }
 }

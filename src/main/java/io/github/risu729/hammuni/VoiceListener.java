@@ -9,7 +9,6 @@
 package io.github.risu729.hammuni;
 
 import lombok.AccessLevel;
-import lombok.Setter;
 import lombok.experimental.FieldDefaults;
 import lombok.experimental.NonFinal;
 import net.dv8tion.jda.api.JDA;
@@ -40,13 +39,11 @@ import static io.github.risu729.hammuni.PointEvent.VC;
 @FieldDefaults(level = AccessLevel.PRIVATE, makeFinal = true)
 class VoiceListener extends ListenerAdapter {
 
-  @NotNull Map<String, Integer> voiceCounts = new HashMap<>();
   @NotNull Map<String, Future<?>> voiceFutures = new HashMap<>();
   @NotNull PointApi pointApi;
   @NotNull ScheduledExecutorService scheduler;
   @NotNull String guildId;
   @NonFinal
-  @Setter(AccessLevel.PACKAGE)
   @Nullable JDA jda;
 
   VoiceListener(@NotNull PointApi pointApi, @NotNull ScheduledExecutorService scheduler,
@@ -54,6 +51,11 @@ class VoiceListener extends ListenerAdapter {
     this.pointApi = pointApi;
     this.scheduler = scheduler;
     this.guildId = guildId;
+  }
+
+  void initialize(@Nullable JDA jda) {
+    this.jda = jda;
+    clear();
   }
 
   @Override
@@ -64,7 +66,6 @@ class VoiceListener extends ListenerAdapter {
     }
 
     var userID = user.getId();
-
     // on voice join
     if (event.getChannelLeft() == null && event.getChannelJoined() != null) {
       onVoiceJoin(userID);
@@ -77,16 +78,15 @@ class VoiceListener extends ListenerAdapter {
   }
 
   @SuppressWarnings("MagicNumber")
-  void onVoiceJoin(@NotNull String userId) {
+  private void onVoiceJoin(@NotNull String userId) {
 
-    if (!voiceCounts.containsKey(userId)) {
-      incrementVoiceCount(userId);
+    if (pointApi.retrieveCountSinceReset(userId, FIRST_VC) == 0) {
       pointApi.addPoint(userId, FIRST_VC);
     }
 
     // 最大5回/日 VCに入っている間、30分ごとにポイントを付与
     voiceFutures.put(userId, scheduler.scheduleAtFixedRate(() -> {
-      if (incrementVoiceCount(userId) <= 6) {
+      if (pointApi.retrieveCountSinceReset(userId, VC) < 5) {
         pointApi.addPoint(userId, VC);
       }
     }, 30, 30, TimeUnit.MINUTES));
@@ -94,7 +94,6 @@ class VoiceListener extends ListenerAdapter {
 
   @Scheduled(cron = "${hammuni.bot.reset.cron}", zone = "${hammuni.bot.reset.zone}")
   void clear() {
-    voiceCounts.clear();
     voiceFutures.values().forEach(future -> future.cancel(false));
     voiceFutures.clear();
     // リセット時にVCにいる人はその時点で入ったとみなす
@@ -105,9 +104,5 @@ class VoiceListener extends ListenerAdapter {
         .map(Member::getUser)
         .map(User::getId)
         .forEach(this::onVoiceJoin);
-  }
-
-  private int incrementVoiceCount(@NotNull String userId) {
-    return voiceCounts.merge(userId, 1, Integer::sum);
   }
 }
