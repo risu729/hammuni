@@ -20,7 +20,7 @@ import org.jetbrains.annotations.Contract;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
-import java.time.OffsetDateTime;
+import java.time.LocalDateTime;
 
 import static com.google.common.base.Preconditions.checkArgument;
 
@@ -42,7 +42,7 @@ public final class UserListQuery extends UserQuery {
 
   @SuppressWarnings({"ConstructorWithTooManyParameters", "MethodWithMoreThanThreeNegations"})
   public UserListQuery(@Nullable Integer offset, @Nullable Integer limit, @Nullable Boolean random,
-      @Nullable Boolean invalid, @Nullable OffsetDateTime since, @Nullable OffsetDateTime until,
+      @Nullable Boolean invalid, @Nullable LocalDateTime since, @Nullable LocalDateTime until,
       @Nullable Boolean positive, @Nullable Boolean negative, @Nullable String discord,
       @Nullable String minecraft, @Nullable String youtube, @Nullable String twitter) {
     super(offset, limit, invalid, since, until, positive, negative);
