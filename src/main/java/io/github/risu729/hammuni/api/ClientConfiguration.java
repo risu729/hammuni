@@ -9,7 +9,6 @@
 package io.github.risu729.hammuni.api;
 
 import com.google.gson.GsonBuilder;
-import io.github.risu729.hammuni.api.util.LocalDateTimeAdapter;
 import io.github.risu729.hammuni.api.util.OffsetDateTimeAdapter;
 import okhttp3.OkHttpClient;
 import okhttp3.logging.HttpLoggingInterceptor;
@@ -30,15 +29,12 @@ public class ClientConfiguration {
   @SuppressWarnings("LoggerInitializedWithForeignClass")
   @Bean
   public PointApiClient pointsApiClient(@NotNull OffsetDateTimeAdapter offsetDateTimeAdapter,
-      @NotNull LocalDateTimeAdapter localDateTimeAdapter, @Value("${hammuni.api.url}") String url,
-      @Value("${hammuni.api.username}") String username,
+      @Value("${hammuni.api.url}") String url, @Value("${hammuni.api.username}") String username,
       @Value("${hammuni.api.password}") String password) {
     return new Retrofit.Builder().baseUrl(url)
         .addConverterFactory(GsonConverterFactory.create(new GsonBuilder()
             // response のパースのため
-            .registerTypeAdapter(OffsetDateTime.class, offsetDateTimeAdapter)
-            // query のパースのため
-            .registerTypeAdapter(LocalDateTimeAdapter.class, localDateTimeAdapter).create()))
+            .registerTypeAdapter(OffsetDateTime.class, offsetDateTimeAdapter).create()))
         .client(new OkHttpClient.Builder().addInterceptor(chain -> chain.proceed(chain.request()
                 .newBuilder()
                 .header("Authorization",
