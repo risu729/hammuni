@@ -20,7 +20,7 @@ import org.jetbrains.annotations.Contract;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
-import java.time.OffsetDateTime;
+import java.time.LocalDateTime;
 
 import static com.google.common.base.Preconditions.checkArgument;
 
@@ -34,14 +34,14 @@ import static com.google.common.base.Preconditions.checkArgument;
 public sealed class UserQuery extends ListQuery permits UserListQuery {
 
   @Nullable Boolean invalid;
-  @Nullable OffsetDateTime since;
-  @Nullable OffsetDateTime until;
+  @Nullable LocalDateTime since;
+  @Nullable LocalDateTime until;
   @Nullable Boolean positive;
   @Nullable Boolean negative;
 
   @SuppressWarnings("ConstructorWithTooManyParameters")
   public UserQuery(@Nullable Integer offset, @Nullable Integer limit,
-      @Nullable Boolean invalid, @Nullable OffsetDateTime since, @Nullable OffsetDateTime until,
+      @Nullable Boolean invalid, @Nullable LocalDateTime since, @Nullable LocalDateTime until,
       @Nullable Boolean positive, @Nullable Boolean negative) {
     super(offset, limit);
     checkArgument(!(Boolean.TRUE.equals(positive) && Boolean.TRUE.equals(negative)),
