@@ -55,7 +55,7 @@ public class JDAConfiguration {
         .filter(guild -> !guild.getId().equals(guildId))
         .map(Guild::leave)
         .forEach(RestAction::queue);
-    voiceListener.setJda(jda);
+    voiceListener.initialize(jda);
     return jda;
   }
 }

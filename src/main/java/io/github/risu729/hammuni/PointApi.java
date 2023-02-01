@@ -9,11 +9,13 @@
 package io.github.risu729.hammuni;
 
 import com.google.common.collect.MoreCollectors;
+import com.google.common.primitives.Ints;
 import io.github.risu729.hammuni.api.PointApiClient;
 import io.github.risu729.hammuni.api.query.UserListQuery;
 import io.github.risu729.hammuni.api.query.UserQuery;
 import io.github.risu729.hammuni.api.request.PointRequest;
 import io.github.risu729.hammuni.api.request.UserRequest;
+import io.github.risu729.hammuni.api.response.PointResponse;
 import io.github.risu729.hammuni.api.response.UserResponse;
 import lombok.AccessLevel;
 import lombok.experimental.FieldDefaults;
@@ -24,9 +26,12 @@ import org.springframework.stereotype.Service;
 
 import java.io.IOException;
 import java.io.UncheckedIOException;
+import java.time.LocalDate;
+import java.time.LocalTime;
+import java.time.ZoneId;
+import java.time.ZonedDateTime;
 import java.util.Collection;
 import java.util.List;
-import java.util.Locale;
 import java.util.UUID;
 import java.util.stream.IntStream;
 
@@ -38,13 +43,19 @@ public class PointApi {
 
   @NotNull UUID appId;
   @NotNull String detailPrefix;
+  @NotNull LocalTime resetTime;
+  @NotNull ZoneId zoneId;
   @NotNull PointApiClient pointApiClient;
 
   private PointApi(@Value("${hammuni.api.app}") @NotNull UUID appId,
       @Value("${hammuni.api.detail-prefix}") @NotNull String detailPrefix,
+      @Value("${hammuni.bot.reset.time}") @NotNull String resetTime,
+      @Value("${hammuni.bot.reset.zone}") @NotNull String zoneId,
       @NotNull PointApiClient pointApiClient) {
     this.appId = appId;
     this.detailPrefix = detailPrefix;
+    this.resetTime = LocalTime.parse(resetTime);
+    this.zoneId = ZoneId.of(zoneId);
     this.pointApiClient = pointApiClient;
   }
 
@@ -115,7 +126,7 @@ public class PointApi {
           .mapToObj(point -> new PointRequest(point,
               apiUser.id(),
               appId,
-              detailPrefix + pointEvent.name().toLowerCase(Locale.ENGLISH)))
+              detailPrefix + pointEvent))
           .map(pointApiClient::addPoint)
           .forEach(call -> {
             try {
@@ -124,6 +135,32 @@ public class PointApi {
               throw new UncheckedIOException(e);
             }
           });
+    }
+  }
+
+  public int retrieveCountSinceReset(@NotNull User user, @NotNull PointEvent pointEvent) {
+    return retrieveCountSinceReset(user.getId(), pointEvent);
+  }
+
+  public int retrieveCountSinceReset(@NotNull String userId, @NotNull PointEvent pointEvent) {
+    var apiUser = retrieveUser(userId);
+    // 今日のリセット時刻を過ぎていれば今日、過ぎていなければ昨日のリセット時刻を取得する
+    var lastReset = ZonedDateTime.of(LocalDate.now(zoneId)
+            .minusDays(LocalTime.now(zoneId).isAfter(resetTime) ? 0 : 1), resetTime, zoneId)
+        .toLocalDateTime();
+    try {
+      return Ints.checkedCast(pointApiClient.getUserHistory(apiUser.id(),
+              UserQuery.builder().since(lastReset).build())
+          .execute()
+          .body()
+          .results()
+          .stream()
+          .filter(response -> response.app().equals(appId))
+          .map(PointResponse::detail)
+          .filter(detail -> detail.equals(detailPrefix + pointEvent))
+          .count());
+    } catch (IOException e) {
+      throw new UncheckedIOException(e);
     }
   }
 }
