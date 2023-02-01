@@ -24,7 +24,6 @@ import org.springframework.beans.factory.annotation.Value;
 import org.springframework.scheduling.annotation.Scheduled;
 import org.springframework.stereotype.Controller;
 
-import java.util.Arrays;
 import java.util.EnumSet;
 import java.util.HashMap;
 import java.util.List;
@@ -105,12 +104,16 @@ public class Listener extends ListenerAdapter {
       pointEvents.add(SURVEY_MESSAGE);
     }
 
-    int count = messageCounts.merge(user.getId(), 1, Integer::sum);
-    if (count == 1) {
+    if (pointApi.retrieveCountSinceReset(user, FIRST_MESSAGE) == 0) {
       pointEvents.add(FIRST_MESSAGE);
     }
 
-    if (IntStream.rangeClosed(1, 10).map(m -> m * (m + 1) / 2).anyMatch(n -> n == count)) {
+    var pointAddCounts = IntStream.rangeClosed(1, 10).map(m -> m * (m + 1) / 2).boxed().toList();
+    messageCounts.merge(user.getId(),
+        pointAddCounts.get(pointApi.retrieveCountSinceReset(user, MESSAGE) - 1),
+        Integer::max);
+    int count = messageCounts.merge(user.getId(), 1, Integer::sum);
+    if (pointAddCounts.contains(count)) {
       pointEvents.add(MESSAGE);
     }
 
