@@ -21,6 +21,7 @@ import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
 import java.time.LocalDateTime;
+import java.time.format.DateTimeFormatter;
 
 import static com.google.common.base.Preconditions.checkArgument;
 
@@ -33,6 +34,9 @@ import static com.google.common.base.Preconditions.checkArgument;
 @SuperBuilder
 public sealed class UserQuery extends ListQuery permits UserListQuery {
 
+  private static final DateTimeFormatter FORMATTER = DateTimeFormatter.ofPattern(
+      "uuuu-MM-dd_HH:mm:ss");
+
   @Nullable Boolean invalid;
   @Nullable LocalDateTime since;
   @Nullable LocalDateTime until;
@@ -40,9 +44,9 @@ public sealed class UserQuery extends ListQuery permits UserListQuery {
   @Nullable Boolean negative;
 
   @SuppressWarnings("ConstructorWithTooManyParameters")
-  public UserQuery(@Nullable Integer offset, @Nullable Integer limit,
-      @Nullable Boolean invalid, @Nullable LocalDateTime since, @Nullable LocalDateTime until,
-      @Nullable Boolean positive, @Nullable Boolean negative) {
+  public UserQuery(@Nullable Integer offset, @Nullable Integer limit, @Nullable Boolean invalid,
+      @Nullable LocalDateTime since, @Nullable LocalDateTime until, @Nullable Boolean positive,
+      @Nullable Boolean negative) {
     super(offset, limit);
     checkArgument(!(Boolean.TRUE.equals(positive) && Boolean.TRUE.equals(negative)),
         "Positive and negative cannot be both true");
@@ -58,8 +62,8 @@ public sealed class UserQuery extends ListQuery permits UserListQuery {
   protected @NotNull ToQueryMapHelper toQueryMapHelper() {
     return super.toQueryMapHelper()
         .add("invalid", invalid)
-        .add("since", since)
-        .add("until", until)
+        .add("since", since == null ? null : FORMATTER.format(since))
+        .add("until", until == null ? null : FORMATTER.format(until))
         .add("positive", positive)
         .add("negative", negative);
   }
