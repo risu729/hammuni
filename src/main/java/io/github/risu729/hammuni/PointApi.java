@@ -147,7 +147,7 @@ public class PointApi {
     // 今日のリセット時刻を過ぎていれば今日、過ぎていなければ昨日のリセット時刻を取得する
     var lastReset = ZonedDateTime.of(LocalDate.now(zoneId)
             .minusDays(LocalTime.now(zoneId).isAfter(resetTime) ? 0 : 1), resetTime, zoneId)
-        .toOffsetDateTime();
+        .toLocalDateTime();
     try {
       return Ints.checkedCast(pointApiClient.getUserHistory(apiUser.id(),
               UserQuery.builder().since(lastReset).build())
