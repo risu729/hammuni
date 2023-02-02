@@ -108,9 +108,11 @@ public class Listener extends ListenerAdapter {
       pointEvents.add(FIRST_MESSAGE);
     }
 
+    // ポイントが付与されるメッセージの送信回数
     var pointAddCounts = IntStream.rangeClosed(1, 10).map(m -> m * (m + 1) / 2).boxed().toList();
+    var eventCount = pointApi.retrieveCountSinceReset(user, MESSAGE);
     messageCounts.merge(user.getId(),
-        pointAddCounts.get(pointApi.retrieveCountSinceReset(user, MESSAGE) - 1),
+        eventCount == 0 ? 0 : pointAddCounts.get(eventCount - 1),
         Integer::max);
     int count = messageCounts.merge(user.getId(), 1, Integer::sum);
     if (pointAddCounts.contains(count)) {
