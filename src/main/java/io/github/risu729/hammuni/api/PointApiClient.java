@@ -9,8 +9,8 @@
 package io.github.risu729.hammuni.api;
 
 import io.github.risu729.hammuni.api.query.ListQuery;
-import io.github.risu729.hammuni.api.query.UserQuery;
 import io.github.risu729.hammuni.api.query.UserListQuery;
+import io.github.risu729.hammuni.api.query.UserQuery;
 import io.github.risu729.hammuni.api.request.AppRequest;
 import io.github.risu729.hammuni.api.request.PointRequest;
 import io.github.risu729.hammuni.api.request.UserRequest;
@@ -65,10 +65,10 @@ public interface PointApiClient {
   @POST("api/users/")
   Call<UserResponse> createUser(@Body @NotNull UserRequest userRequest);
 
-  @GET("api/users/{UUID}")
+  @GET("api/users/{UUID}/")
   Call<UserResponse> getUser(@Path("UUID") @NotNull UUID uuid);
 
-  @GET("api/users/{UUID}")
+  @GET("api/users/{UUID}/")
   Call<UserResponse> getUser(@Path("UUID") @NotNull UUID uuid,
       @QueryMap @NotNull Map<String, String> query);
 
@@ -76,11 +76,11 @@ public interface PointApiClient {
     return getUser(uuid, query.toQueryMap());
   }
 
-  @PATCH("api/users/{UUID}")
+  @PATCH("api/users/{UUID}/")
   Call<UserResponse> updateUser(@Path("UUID") @NotNull UUID uuid,
       @Body @NotNull UserRequest userRequest);
 
-  @DELETE("api/users/{UUID}")
+  @DELETE("api/users/{UUID}/")
   Call<UserResponse> deleteUser(@Path("UUID") @NotNull UUID uuid);
 
   @GET("api/users/{UUID}/history/")
