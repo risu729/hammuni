@@ -8,6 +8,7 @@
 
 package io.github.risu729.hammuni.api;
 
+import com.google.gson.FieldNamingPolicy;
 import com.google.gson.GsonBuilder;
 import io.github.risu729.hammuni.api.util.OffsetDateTimeAdapter;
 import okhttp3.OkHttpClient;
@@ -32,7 +33,8 @@ public class ClientConfiguration {
       @Value("${hammuni.api.url}") String url, @Value("${hammuni.api.username}") String username,
       @Value("${hammuni.api.password}") String password) {
     return new Retrofit.Builder().baseUrl(url)
-        .addConverterFactory(GsonConverterFactory.create(new GsonBuilder()
+        .addConverterFactory(GsonConverterFactory.create(new GsonBuilder().setFieldNamingPolicy(
+                FieldNamingPolicy.LOWER_CASE_WITH_UNDERSCORES)
             // response のパースのため
             .registerTypeAdapter(OffsetDateTime.class, offsetDateTimeAdapter).create()))
         .client(new OkHttpClient.Builder().addInterceptor(chain -> chain.proceed(chain.request()
