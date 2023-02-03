@@ -17,7 +17,7 @@ import java.util.UUID;
 public record PointResponse(@NotNull UUID id,
                             @NotNull OffsetDateTime date,
                             int diff,
-                            @NotNull UUID user,
+                            @Nullable UUID user,
                             @NotNull UUID app,
                             @NotNull String detail,
                             @Nullable Boolean isValid) {}
