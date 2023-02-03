@@ -31,6 +31,7 @@ import java.time.LocalTime;
 import java.time.ZoneId;
 import java.time.ZonedDateTime;
 import java.util.Collection;
+import java.util.Comparator;
 import java.util.List;
 import java.util.UUID;
 import java.util.stream.IntStream;
@@ -162,5 +163,52 @@ public class PointApi {
     } catch (IOException e) {
       throw new UncheckedIOException(e);
     }
+  }
+
+  public void linkUsers(@NotNull List<? extends @NotNull User> discordUsers) {
+    var apiUsers = discordUsers.stream()
+        .map(User::getId)
+        .map(this::retrieveUser)
+        .distinct()
+        .toList();
+    // 既に紐づけられている場合同一のユーザーが返されるので、その場合は何もしない
+    if (apiUsers.size() == 1) {
+      return;
+    }
+    var mainUser = apiUsers.stream()
+        .max(Comparator.comparingInt(UserResponse::point))
+        .orElseThrow();
+    try {
+      pointApiClient.updateUser(mainUser.id(),
+          UserRequest.builder()
+              .discord(apiUsers.stream()
+                  .map(UserResponse::discord)
+                  .flatMap(List::stream)
+                  .distinct()
+                  .toList())
+              .build()).execute();
+    } catch (IOException e) {
+      throw new UncheckedIOException(e);
+    }
+    var subUsers = apiUsers.stream().filter(user -> !user.id().equals(mainUser.id())).toList();
+    subUsers.stream().map(UserResponse::id).map(pointApiClient::deleteUser).forEach(call -> {
+      try {
+        call.execute();
+      } catch (IOException e) {
+        throw new UncheckedIOException(e);
+      }
+    });
+    subUsers.stream().mapToInt(UserResponse::point).forEach(point -> {
+      if (point != 0) {
+        try {
+          pointApiClient.addPoint(new PointRequest(point,
+              mainUser.id(),
+              appId,
+              detailPrefix + "link_users")).execute();
+        } catch (IOException e) {
+          throw new UncheckedIOException(e);
+        }
+      }
+    });
   }
 }
