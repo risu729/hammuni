@@ -11,6 +11,7 @@ package io.github.risu729.hammuni;
 import com.google.common.collect.MoreCollectors;
 import io.github.risu729.hammuni.command.ExecutableCommandData;
 import io.github.risu729.hammuni.command.LinkAccounts;
+import io.github.risu729.hammuni.command.NameColor;
 import io.github.risu729.hammuni.command.PointView;
 import lombok.AccessLevel;
 import lombok.Getter;
@@ -33,15 +34,18 @@ public class CommandListener extends ListenerAdapter {
 
   @NotNull List<? extends @NotNull ExecutableCommandData> commands;
 
-  public CommandListener(@NotNull PointView pointView, @NotNull LinkAccounts linkAccounts) {
-    commands = List.of(pointView, linkAccounts);
+  public CommandListener(@NotNull PointView pointView, @NotNull LinkAccounts linkAccounts,
+      @NotNull NameColor nameColor) {
+    commands = List.of(pointView, linkAccounts, nameColor);
   }
 
   @Override
   public final void onGenericCommandInteraction(@NotNull GenericCommandInteractionEvent event) {
+    // タイムアウト防止のため、deferReplyを先に実行
+    event.deferReply().queue();
     commands.stream()
         .filter(command -> command.getName().equals(event.getName()))
         .collect(MoreCollectors.onlyElement())
-        .execute(event);
+        .execute(event.getHook(), event);
   }
 }

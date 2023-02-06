@@ -119,8 +119,13 @@ public class PointApi {
       @NotNull Collection<@NotNull PointEvent> pointEvents) {
     var apiUser = retrieveUser(userId);
     for (var pointEvent : pointEvents) {
-      if (apiUser.point() < -pointEvent.gainPoint() + pointEvent.consumePoint()) {
-        return;
+      if (!hasEnoughPoint(apiUser, pointEvent)) {
+        if (pointEvent.rejectIfNotEnough()) {
+          throw new IllegalStateException(
+              "User %s does not have enough point for the event %s".formatted(userId, pointEvent));
+        } else {
+          return;
+        }
       }
       IntStream.of(pointEvent.gainPoint(), -pointEvent.consumePoint())
           .filter(point -> point != 0)
@@ -137,6 +142,19 @@ public class PointApi {
             }
           });
     }
+  }
+
+  public boolean hasEnoughPoint(@NotNull User user, @NotNull PointEvent pointEvent) {
+    return hasEnoughPoint(user.getId(), pointEvent);
+  }
+
+  public boolean hasEnoughPoint(@NotNull String userId, @NotNull PointEvent pointEvent) {
+    var apiUser = retrieveUser(userId);
+    return hasEnoughPoint(apiUser, pointEvent);
+  }
+
+  private boolean hasEnoughPoint(@NotNull UserResponse apiUser, @NotNull PointEvent pointEvent) {
+    return apiUser.point() >= -pointEvent.gainPoint() + pointEvent.consumePoint();
   }
 
   public int retrieveCountSinceReset(@NotNull User user, @NotNull PointEvent pointEvent) {
