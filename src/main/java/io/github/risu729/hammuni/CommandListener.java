@@ -41,9 +41,11 @@ public class CommandListener extends ListenerAdapter {
 
   @Override
   public final void onGenericCommandInteraction(@NotNull GenericCommandInteractionEvent event) {
+    // タイムアウト防止のため、deferReplyを先に実行
+    event.deferReply().queue();
     commands.stream()
         .filter(command -> command.getName().equals(event.getName()))
         .collect(MoreCollectors.onlyElement())
-        .execute(event);
+        .execute(event.getHook(), event);
   }
 }

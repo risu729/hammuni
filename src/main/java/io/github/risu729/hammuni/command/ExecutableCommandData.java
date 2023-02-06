@@ -16,6 +16,7 @@ import lombok.ToString;
 import lombok.experimental.Delegate;
 import lombok.experimental.FieldDefaults;
 import net.dv8tion.jda.api.events.interaction.command.GenericCommandInteractionEvent;
+import net.dv8tion.jda.api.interactions.InteractionHook;
 import net.dv8tion.jda.api.interactions.commands.build.CommandData;
 import org.jetbrains.annotations.NotNull;
 
@@ -29,5 +30,6 @@ public abstract class ExecutableCommandData implements CommandData {
   @Delegate
   @NotNull CommandData command;
 
-  public abstract void execute(@NotNull GenericCommandInteractionEvent event);
+  public abstract void execute(@NotNull InteractionHook hook,
+      @NotNull GenericCommandInteractionEvent event);
 }

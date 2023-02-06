@@ -20,6 +20,7 @@ import net.dv8tion.jda.api.EmbedBuilder;
 import net.dv8tion.jda.api.entities.Guild;
 import net.dv8tion.jda.api.entities.Role;
 import net.dv8tion.jda.api.events.interaction.command.GenericCommandInteractionEvent;
+import net.dv8tion.jda.api.interactions.InteractionHook;
 import net.dv8tion.jda.api.interactions.commands.build.Commands;
 import net.dv8tion.jda.api.interactions.commands.build.SubcommandData;
 import org.jetbrains.annotations.CheckReturnValue;
@@ -45,7 +46,8 @@ public class NameColor extends ExecutableCommandData {
   }
 
   @Override
-  public void execute(@NotNull GenericCommandInteractionEvent event) {
+  public void execute(@NotNull InteractionHook hook,
+      @NotNull GenericCommandInteractionEvent event) {
 
     var user = event.getUser();
     var colorType = ColorType.fromSubcommandName(checkNotNull(event.getSubcommandName()));
@@ -53,7 +55,7 @@ public class NameColor extends ExecutableCommandData {
 
     var pointEvent = colorType.pointEvent();
     if (!pointApi.hasEnoughPoint(user, colorType.pointEvent())) {
-      event.replyEmbeds(new EmbedBuilder().setTitle("ポイント不足😿")
+      hook.sendMessageEmbeds(new EmbedBuilder().setTitle("ポイント不足😿")
           .setDescription("あと%dどんぐり必要です…".formatted(
               pointEvent.consumePoint() - userResponse.point()))
           .build()).setEphemeral(true).queue();

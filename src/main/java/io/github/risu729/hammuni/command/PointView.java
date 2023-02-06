@@ -13,6 +13,7 @@ import lombok.AccessLevel;
 import lombok.experimental.FieldDefaults;
 import net.dv8tion.jda.api.EmbedBuilder;
 import net.dv8tion.jda.api.events.interaction.command.GenericCommandInteractionEvent;
+import net.dv8tion.jda.api.interactions.InteractionHook;
 import net.dv8tion.jda.api.interactions.commands.build.Commands;
 import org.jetbrains.annotations.NotNull;
 import org.springframework.stereotype.Component;
@@ -31,10 +32,11 @@ public final class PointView extends ExecutableCommandData {
   }
 
   @Override
-  public void execute(@NotNull GenericCommandInteractionEvent event) {
+  public void execute(@NotNull InteractionHook hook,
+      @NotNull GenericCommandInteractionEvent event) {
     var member = checkNotNull(event.getMember());
     var apiUser = pointApi.retrieveUser(event.getUser());
-    event.replyEmbeds(new EmbedBuilder().setTitle(member.getEffectiveName())
+    hook.sendMessageEmbeds(new EmbedBuilder().setTitle(member.getEffectiveName())
         .setThumbnail(member.getEffectiveAvatarUrl())
         .addField("食べたどんぐり🐿", String.valueOf(pointApi.retrieveConsumedPoint(apiUser.id())), false)
         .addField("持ってるどんぐり🐿", String.valueOf(apiUser.point()), false)

@@ -17,6 +17,7 @@ import net.dv8tion.jda.api.Permission;
 import net.dv8tion.jda.api.entities.Member;
 import net.dv8tion.jda.api.entities.User;
 import net.dv8tion.jda.api.events.interaction.command.GenericCommandInteractionEvent;
+import net.dv8tion.jda.api.interactions.InteractionHook;
 import net.dv8tion.jda.api.interactions.commands.DefaultMemberPermissions;
 import net.dv8tion.jda.api.interactions.commands.OptionMapping;
 import net.dv8tion.jda.api.interactions.commands.OptionType;
@@ -49,7 +50,8 @@ public final class LinkAccounts extends ExecutableCommandData {
   }
 
   @Override
-  public void execute(@NotNull GenericCommandInteractionEvent event) {
+  public void execute(@NotNull InteractionHook hook,
+      @NotNull GenericCommandInteractionEvent event) {
     Set<String> setForDistinct = new HashSet<>();
     var members = event.getOptions()
         .stream()
@@ -60,7 +62,7 @@ public final class LinkAccounts extends ExecutableCommandData {
     var users = members.stream().map(Member::getUser).toList();
     checkArgument(users.stream().noneMatch(User::isBot));
     pointApi.linkUsers(users);
-    event.replyEmbeds(new EmbedBuilder().setTitle("link")
+    hook.sendMessageEmbeds(new EmbedBuilder().setTitle("link")
         .setDescription("アカウントを紐づけました")
         .addField("Users",
             members.stream().map(Member::getEffectiveName).collect(Collectors.joining("\n")),
