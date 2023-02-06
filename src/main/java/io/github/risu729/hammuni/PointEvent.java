@@ -22,7 +22,7 @@ import java.util.Locale;
 @Accessors(fluent = true)
 @Getter
 @AllArgsConstructor
-enum PointEvent {
+public enum PointEvent {
 
   // リアクションの付与
   REACTION(3, 10),

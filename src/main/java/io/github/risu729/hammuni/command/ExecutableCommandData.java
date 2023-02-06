@@ -19,7 +19,6 @@ import net.dv8tion.jda.api.events.interaction.command.GenericCommandInteractionE
 import net.dv8tion.jda.api.interactions.commands.build.CommandData;
 import org.jetbrains.annotations.NotNull;
 
-@SuppressWarnings("AbstractClassWithOnlyOneDirectInheritor")
 @FieldDefaults(level = AccessLevel.PRIVATE, makeFinal = true)
 @Getter
 @RequiredArgsConstructor

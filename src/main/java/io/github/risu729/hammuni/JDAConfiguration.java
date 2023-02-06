@@ -37,7 +37,7 @@ public class JDAConfiguration {
             GatewayIntent.GUILD_VOICE_STATES,
             GatewayIntent.GUILD_MESSAGES,
             GatewayIntent.GUILD_MESSAGE_REACTIONS)
-        .enableCache(CacheFlag.VOICE_STATE)
+        .enableCache(CacheFlag.VOICE_STATE, CacheFlag.ROLE_TAGS)
         .setMemberCachePolicy(MemberCachePolicy.VOICE)
         .setActivity(Activity.playing("はむにりす vs あざらし"))
         .addEventListeners(listener, voiceListener, commandListener)
