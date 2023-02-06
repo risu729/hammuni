@@ -10,9 +10,6 @@ package io.github.risu729.hammuni;
 
 import com.google.common.collect.MoreCollectors;
 import io.github.risu729.hammuni.command.ExecutableCommandData;
-import io.github.risu729.hammuni.command.LinkAccounts;
-import io.github.risu729.hammuni.command.NameColor;
-import io.github.risu729.hammuni.command.PointView;
 import lombok.AccessLevel;
 import lombok.Getter;
 import lombok.ToString;
@@ -34,9 +31,9 @@ public class CommandListener extends ListenerAdapter {
 
   @NotNull List<? extends @NotNull ExecutableCommandData> commands;
 
-  public CommandListener(@NotNull PointView pointView, @NotNull LinkAccounts linkAccounts,
-      @NotNull NameColor nameColor) {
-    commands = List.of(pointView, linkAccounts, nameColor);
+  @SuppressWarnings("AssignmentOrReturnOfFieldWithMutableType")
+  public CommandListener(@NotNull List<? extends @NotNull ExecutableCommandData> commands) {
+    this.commands = commands;
   }
 
   @Override
