@@ -15,6 +15,7 @@ import io.github.risu729.hammuni.api.query.UserListQuery;
 import io.github.risu729.hammuni.api.query.UserQuery;
 import io.github.risu729.hammuni.api.request.PointRequest;
 import io.github.risu729.hammuni.api.request.UserRequest;
+import io.github.risu729.hammuni.api.response.ListResponse;
 import io.github.risu729.hammuni.api.response.PointResponse;
 import io.github.risu729.hammuni.api.response.UserResponse;
 import lombok.AccessLevel;
@@ -35,6 +36,7 @@ import java.util.Comparator;
 import java.util.List;
 import java.util.UUID;
 import java.util.stream.IntStream;
+import java.util.stream.Stream;
 
 
 @SuppressWarnings("DataFlowIssue")
@@ -121,8 +123,9 @@ public class PointApi {
     for (var pointEvent : pointEvents) {
       if (!hasEnoughPoint(apiUser, pointEvent)) {
         if (pointEvent.rejectIfNotEnough()) {
-          throw new IllegalStateException(
-              "User %s does not have enough point for the event %s".formatted(userId, pointEvent));
+          throw new IllegalStateException("User %s does not have enough point for the event %s".formatted(
+              userId,
+              pointEvent));
         } else {
           return;
         }
@@ -161,6 +164,7 @@ public class PointApi {
     return retrieveCountSinceReset(user.getId(), pointEvent);
   }
 
+  @SuppressWarnings("MagicNumber")
   public int retrieveCountSinceReset(@NotNull String userId, @NotNull PointEvent pointEvent) {
     var apiUser = retrieveUser(userId);
     // 今日のリセット時刻を過ぎていれば今日、過ぎていなければ昨日のリセット時刻を取得する
@@ -168,12 +172,19 @@ public class PointApi {
             .minusDays(LocalTime.now(zoneId).isAfter(resetTime) ? 0 : 1), resetTime, zoneId)
         .toLocalDateTime();
     try {
-      return Ints.checkedCast(pointApiClient.getUserHistory(apiUser.id(),
-              UserQuery.builder().since(lastReset).build())
-          .execute()
-          .body()
-          .results()
-          .stream()
+      return Ints.checkedCast(Stream.iterate(pointApiClient.getUserHistory(apiUser.id(),
+              UserQuery.builder()
+                  .since(lastReset)
+                  .limit(50) // できる限り1回のAPI呼び出しでリセットしてからの履歴を取得できるように (デフォルトは10件)
+                  .build()).execute().body(), response -> response.next() != null, response -> {
+            try {
+              return pointApiClient.getUserHistory(response.next()).execute().body();
+            } catch (IOException e) {
+              throw new UncheckedIOException(e);
+            }
+          })
+          .map(ListResponse::results)
+          .flatMap(List::stream)
           .filter(response -> response.app().equals(appId))
           .map(PointResponse::detail)
           .filter(detail -> detail.equals(detailPrefix + pointEvent))

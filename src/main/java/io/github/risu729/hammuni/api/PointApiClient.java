@@ -27,7 +27,9 @@ import retrofit2.http.PATCH;
 import retrofit2.http.POST;
 import retrofit2.http.Path;
 import retrofit2.http.QueryMap;
+import retrofit2.http.Url;
 
+import java.net.URL;
 import java.util.Collections;
 import java.util.Map;
 import java.util.UUID;
@@ -95,4 +97,8 @@ public interface PointApiClient {
   default Call<ListResponse<PointResponse>> getUserHistory(@NotNull UUID uuid) {
     return getUserHistory(uuid, Collections.emptyMap());
   }
+
+  // next/previous フィールドから直接コールするため
+  @GET
+  Call<ListResponse<PointResponse>> getUserHistory(@Url @NotNull URL url);
 }
