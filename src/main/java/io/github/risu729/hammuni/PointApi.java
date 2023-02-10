@@ -164,7 +164,7 @@ public class PointApi {
     return retrieveCountSinceReset(user.getId(), pointEvent);
   }
 
-  @SuppressWarnings("MagicNumber")
+  @SuppressWarnings({"MagicNumber", "ForLoopWithMissingComponent", "BreakStatement"})
   public int retrieveCountSinceReset(@NotNull String userId, @NotNull PointEvent pointEvent) {
     var apiUser = retrieveUser(userId);
     // 今日のリセット時刻を過ぎていれば今日、過ぎていなければ昨日のリセット時刻を取得する
@@ -172,17 +172,21 @@ public class PointApi {
             .minusDays(LocalTime.now(zoneId).isAfter(resetTime) ? 0 : 1), resetTime, zoneId)
         .toLocalDateTime();
     try {
-      return Ints.checkedCast(Stream.iterate(pointApiClient.getUserHistory(apiUser.id(),
+      var builder = Stream.<ListResponse<PointResponse>>builder();
+      // nextがnullになった最後のレスポンスまで含めるためにfor, breakを使う
+      for (var response = pointApiClient.getUserHistory(apiUser.id(),
               UserQuery.builder()
                   .since(lastReset)
                   .limit(50) // できる限り1回のAPI呼び出しでリセットしてからの履歴を取得できるように (デフォルトは10件)
-                  .build()).execute().body(), response -> response.next() != null, response -> {
-            try {
-              return pointApiClient.getUserHistory(response.next()).execute().body();
-            } catch (IOException e) {
-              throw new UncheckedIOException(e);
-            }
-          })
+                  .build())
+          .execute()
+          .body(); ; response = pointApiClient.getUserHistory(response.next()).execute().body()) {
+        builder.add(response);
+        if (response.next() == null) {
+          break;
+        }
+      }
+      return Ints.checkedCast(builder.build()
           .map(ListResponse::results)
           .flatMap(List::stream)
           .filter(response -> response.app().equals(appId))
